@@ -19,6 +19,9 @@ Calibrations::Calibrations() {
     ReadSuperX3UpCalibrations();
     ReadSuperX3UpPedestals();
 
+	ReadBB10Calibrations();
+	ReadBB10Pedestals();
+
     // Read and parse config.json
     Json::Value config;
     std::ifstream config_stream("config.json");
@@ -133,6 +136,36 @@ void Calibrations::ReadSuperX3UpPedestals() {
 
     while(in >> det >> something >> pedestal) {
         fSuperX3UpPedestals[det][something] = pedestal;
+    }
+
+    in.close();
+}
+
+void Calibrations::ReadBB10Calibrations() {
+    std::cout << PrintOutput("\t\tReading BB10Calibrations.dat", "blue") << std::endl;
+    std::ifstream in("BB10Calibrations.dat");
+    ASSERT_WITH_MESSAGE(in.is_open(), "Could not open BB10Calibrations.dat");
+
+    int detector, strip;
+    double intercept, slope;
+
+    while(in >> detector >> strip >> intercept >> slope) {
+        fBB10Calibrations[detector][strip] = std::make_pair(intercept, slope);
+    }
+
+    in.close();
+}
+
+void Calibrations::ReadBB10Pedestals() {
+    std::cout << PrintOutput("\t\tReading BB10Pedestals.dat", "blue") << std::endl;
+    std::ifstream in("BB10Pedestals.dat");
+    ASSERT_WITH_MESSAGE(in.is_open(), "Could not open BB10Pedestals.dat");
+
+    int strip;
+    double pedestal;
+
+    while(in >> strip >> pedestal) {
+        fBB10Pedestals[strip] = pedestal;
     }
 
     in.close();
