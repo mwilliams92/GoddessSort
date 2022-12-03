@@ -108,6 +108,3 @@ void RemoveSX3FrontDuplicates(std::vector<SuperX3Front>& front_) {
 //
 //	return true;
 //}
-
-
-

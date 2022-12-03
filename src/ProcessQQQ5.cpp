@@ -18,8 +18,8 @@ std::vector<QQQ5Detector> ProcessQQQ5(std::vector<QQQ5Ring> ring_, std::vector<Q
 
     for(auto ring: ring_) {
         for(auto sector: sector_) {
-            if(ring.detector == sector.detector) {
-                int detector = ring.detector;
+            if(ring.detector == sector.detector) { // may need a statement asking OR sector.detector==4 OR ring.sector==4???
+                int detector = ring.detector; // due to missing E2 "A" rings may need to get the QQQ5 detector from the sector event instead
                 int ringNumber = ring.ring;
                 int ringChannel = ring.channel;
                 int sectorNumber = sector.sector;

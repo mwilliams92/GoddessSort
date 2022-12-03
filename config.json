@@ -1,8 +1,8 @@
 {
-  "pathToFolders": "/Users/joshhooker/Desktop/data/30P_dp/",
+  "pathToFolders": "~/experiments/mo96pp/protons",
   "pathPrefix": "Run",
-  "ldfPrefix": "p30dp",
-  "outputPath": "/Users/joshhooker/physics/utk/research/GoddessFiles/OutputFolder/",
+  "ldfPrefix": "protons96mo",
+  "outputPath": "~/experiments/mo96pp/OutputFolder/",
   "copyCuts": true,
   "cutPrefix": "cut_p30dp",
   "useAllFolders": false,

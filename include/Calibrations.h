@@ -22,6 +22,9 @@ public:
     std::map<int, std::map<int, std::map<int, std::pair<float, float> > > > GetSuperX3Calibrations() {return fSuperX3UpCalibrations;}
     std::map<int, std::map<int, float> > GetSuperX3Pedestals() {return fSuperX3UpPedestals;}
 
+	std::map<int, std::map<int, std::pair<float, float> > > GetBB10Calibrations() {return fBB10Calibrations;}
+    std::map<int, float> GetBB10Pedestals() {return fBB10Pedestals;}
+
     int GetBB10Threshold() {return BB10Threshold;}
     int GetQQQThreshold() {return QQQThreshold;}
     int GetSX3Threshold() {return SX3Threshold;}
@@ -39,6 +42,9 @@ private:
     void ReadSuperX3UpCalibrations();
     void ReadSuperX3UpPedestals();
 
+	void ReadBB10Calibrations();
+    void ReadBB10Pedestals();
+
     int BB10Threshold;
     int QQQThreshold;
     int SX3Threshold;
@@ -53,6 +59,9 @@ private:
 
     std::map<int, std::map<int, std::map<int, std::pair<float, float> > > > fSuperX3UpCalibrations;
     std::map<int, std::map<int, float> > fSuperX3UpPedestals;
+
+	std::map<int, std::map<int, std::pair<float, float> > > fBB10Calibrations;
+    std::map<int, float> fBB10Pedestals;
 };
 
 #endif // Calibrations_h

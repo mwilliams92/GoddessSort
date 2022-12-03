@@ -208,37 +208,82 @@ UnpackORRUBA::UnpackORRUBA(fileListStruct run) {
                             int detector = static_cast<int>((channel - 425)/4) + 10;
                             SuperX3Back hit = {channel, detector, channel - 425 - (detector - 10)*4, adc};
                             SX3dBack_.push_back(hit);
-                        } else if(channel > 432 && channel <= 496 && adc > BB10Threshold) { // BB10 Downstream
+						// Downstream BB10s
+                        } else if(channel > 432 && channel <= 496 && adc > BB10Threshold) {
                             int detector = static_cast<int>((channel - 433)/8);
                             BB10Hit hit = {channel, detector, channel - 433 - detector*8, adc};
-                            BB10Hit_.push_back(hit);
-                        } else if(channel > 496 && channel <= 508 && adc > QQQThreshold) { // QQQ5 downstream back (sectors)
-                            int detector = static_cast<int>((channel - 497)/4);
-                            QQQ5Sector hit = {channel, detector, channel - 497 - detector*4, adc};
-                            QdSector_.push_back(hit);
-                        } else if(channel > 512 && channel <= 608 && adc > QQQThreshold) { // QQQ5 downstream front (rings)
-                            int detector = static_cast<int>((channel - 513)/32);
-                            QQQ5Ring hit = {channel, detector, channel - 513 - detector*32, adc};
+                            BB10Hit_.push_back(hit); 
+                 		// Downstream dE Layer QQQ5 Rings
+                        }  else if(channel > 496 && channel <= 560 && adc > QQQThreshold) {
+                            int detector = static_cast<int>((channel - 497)/32);
+                            QQQ5Ring hit = {channel, detector, channel - 497 - detector*32, adc};
                             QdRing_.push_back(hit);
-                        } else if(channel > 672 && channel <= 704 && adc > ICTrackingThreshold) { // IC x
-                            int wire = channel - 673;
-                            ICTracking hit = {true, wire, adc};
-                            ICx_.push_back(hit);
-                        } else if(channel > 704 && channel <= 736 && adc > ICTrackingThreshold) { // IC y
-                            int wire = channel - 705;
-                            ICTracking hit = {false, wire, adc};
-                            ICy_.push_back(hit);
-                        } else if(channel == 739) { //IC dE
-                            icdE = adc;
-                        } else if(channel == 740) { //IC E
-                            icE = adc;
-                        } else if(channel == 818) { // TDC IC
-                            tdcIC = adc;
-                        } else if(channel == 819) { // TDC GRETINA
+						// Downstream dE Layer QQQ5 Detector A Sectors
+                        } else if(channel > 560 && channel <= 564 && adc > QQQThreshold) { // QQQ5 deltaE downstream back (sectors)
+							int detector = static_cast<int>((channel - 561)/4); // always 0 (A)
+							QQQ5Sector hit = {channel, detector, channel - 561, adc}; // I think 569 to 576 "should" be empty...
+                            QdSector_.push_back(hit);
+						// Downstream dE Layer QQQ5 Detector B Sectors
+						} else if(channel > 568 && channel <= 572 && adc > QQQThreshold) { 
+                            int detector = static_cast<int>((channel - 569)/4); // always 1 (B)
+                            QQQ5Sector hit = {channel, detector+1, channel - 569, adc};
+                            QdSector_.push_back(hit);
+                        // Downstream E1 Layer QQQ5 Rings
+                        } else if(channel > 576 && channel <= 640 && adc > QQQThreshold) { // QQQ5 E1&E2 downstream front (rings)
+                            int detector = static_cast<int>((channel - 577)/32); // Either 2 (E1-A) or 3 (E1-B)
+                            QQQ5Ring hit = {channel, detector+2, channel - 577 - detector*32, adc};
+                            QdRing_.push_back(hit);
+						// Downstream E2 Layer QQQ5 Detector B Rings
+						} else if(channel > 640 && channel <= 672 && adc > QQQThreshold) { // QQQ5 E1&E2 downstream front (rings)
+                            int detector = static_cast<int>((channel - 641)/32); // Always 5 (E2-B)
+                            QQQ5Ring hit = {channel, detector+5, channel - 641 - detector*32, adc};
+                            QdRing_.push_back(hit);
+						// Downstream E1 Layer QQQ5 Detector A Sectors
+                        } else if(channel > 672 && channel <= 676 && adc > QQQThreshold) { // QQQ5 E1&E2 downstream back (sectors)
+                            int detector = static_cast<int>((channel - 673)/4); // Always 2 (E1-A)
+                            QQQ5Sector hit = {channel, detector + 2, channel - 673, adc};  // needs to fill sector 0, 1, 2, 3
+                            QdSector_.push_back(hit);
+						// Downstream E1 Layer QQQ5 Detector B Sectors
+                        } else if(channel > 680 && channel <= 684 && adc > QQQThreshold) { // QQQ5 E1&E2 downstream back (sectors)
+                            int detector = static_cast<int>((channel - 681)/4); // Always 3 (E1-B)
+                            QQQ5Sector hit = {channel, detector+3, channel - 681, adc};
+                            QdSector_.push_back(hit);
+                        // Downstream E2 Layer QQQ5 Detector A Sectors + Dummy Ring
+                        } else if(channel > 676 && channel <= 680 && adc > QQQThreshold) { // QQQ5 E1&E2 downstream back (sectors)
+                            int detector = static_cast<int>((channel - 677)/4); // Always 4 (E2-A)
+                            QQQ5Sector hit = {channel, detector+4, channel - 677, adc};
+                            QdSector_.push_back(hit);
+							QQQ5Ring hit2 = {channel, detector+4, channel - 677, adc};
+                            QdRing_.push_back(hit2);	// copy hit into a ring
+						// Downstream E2 Layer QQQ5 Detector B Sectors
+                        } else if(channel > 684 && channel <= 688 && adc > QQQThreshold) { // QQQ5 E1&E2 downstream back (sectors)
+                            int detector = static_cast<int>((channel - 685)/4); // Always 5 (E2-B)
+                            QQQ5Sector hit = {channel, detector+5, channel - 685, adc};
+                            QdSector_.push_back(hit);
+                        }
+                        //#####################
+                        
+                        //else if(channel > 672 && channel <= 704 && adc > ICTrackingThreshold) { // IC x
+                        //    int wire = channel - 673;
+                        //    ICTracking hit = {true, wire, adc};
+                        //    ICx_.push_back(hit);
+                        //} else if(channel > 704 && channel <= 736 && adc > ICTrackingThreshold) { // IC y
+                        //    int wire = channel - 705;
+                        //    ICTracking hit = {false, wire, adc};
+                        //    ICy_.push_back(hit);
+                        //} else if(channel == 739) { //IC dE
+                        //    icdE = adc;
+                        //} else if(channel == 740) { //IC E
+                        //    icE = adc;
+                        //} else if(channel == 818) { // TDC IC
+                        //    tdcIC = adc;
+                        //}
+                         
+                        else if(channel == 839) { // TDC GRETINA (was 819)
                             tdcGRETINA = adc;
-                        } else if(channel == 821) { // TDC RF
+                        } else if(channel == 836) { // TDC RF (was 821)
                             tdcRF = adc;
-                        } else if(channel == 822) { // TDC Silicon
+                        } else if(channel == 835) { // TDC Silicon (was 822)
                             tdcSilicon = adc;
                         }
 
@@ -314,6 +359,9 @@ UnpackORRUBA::UnpackORRUBA(fileListStruct run) {
                         fQQQ5Angle[fQQQ5Mul] = QDetect.angle;
                         fQQQ5Mul++;
                     }
+					// why not reset fQQQ5Mul=0 here too? I guess not interested in upstream and downstream multiplicity separately? 
+					// if there were and upstream and downstream hit then multiplicity = 2.
+					// Also multiplicity = 2 if both layers of a telescope are hit. In the analysis may want loop over multiplicity and sum ring energies
                     for(auto QDetect: QuDetect_) {
                         fQQQ5Upstream[fQQQ5Mul] = QDetect.upstream;
                         fQQQ5Det[fQQQ5Mul] = QDetect.detector;
