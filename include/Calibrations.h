@@ -19,8 +19,10 @@ public:
     std::map<int, std::map<int, std::pair<float, float> > > GetQQQ5UpCalibrations() {return fQQQ5UpCalibrations;}
     std::map<int, float> GetQQQ5Angles() {return fQQQ5Angles;}
 
-    std::map<int, std::map<int, std::map<int, std::pair<float, float> > > > GetSuperX3Calibrations() {return fSuperX3UpCalibrations;}
-    std::map<int, std::map<int, float> > GetSuperX3Pedestals() {return fSuperX3UpPedestals;}
+    std::map<int, std::map<int, std::map<int, std::pair<float, float> > > > GetSuperX3UpCalibrations() {return fSuperX3UpCalibrations;}
+    std::map<int, std::map<int, float> > GetSuperX3UpPedestals() {return fSuperX3UpPedestals;}
+	std::map<int, std::map<int, std::map<int, std::pair<float, float> > > > GetSuperX3DownCalibrations() {return fSuperX3DownCalibrations;}
+    std::map<int, std::map<int, float> > GetSuperX3DownPedestals() {return fSuperX3DownPedestals;}
 
 	std::map<int, std::map<int, std::pair<float, float> > > GetBB10Calibrations() {return fBB10Calibrations;}
     std::map<int, float> GetBB10Pedestals() {return fBB10Pedestals;}
@@ -41,6 +43,8 @@ private:
 
     void ReadSuperX3UpCalibrations();
     void ReadSuperX3UpPedestals();
+	void ReadSuperX3DownCalibrations();
+    void ReadSuperX3DownPedestals();
 
 	void ReadBB10Calibrations();
     void ReadBB10Pedestals();
@@ -59,6 +63,8 @@ private:
 
     std::map<int, std::map<int, std::map<int, std::pair<float, float> > > > fSuperX3UpCalibrations;
     std::map<int, std::map<int, float> > fSuperX3UpPedestals;
+	std::map<int, std::map<int, std::map<int, std::pair<float, float> > > > fSuperX3DownCalibrations;
+    std::map<int, std::map<int, float> > fSuperX3DownPedestals;
 
 	std::map<int, std::map<int, std::pair<float, float> > > fBB10Calibrations;
     std::map<int, float> fBB10Pedestals;

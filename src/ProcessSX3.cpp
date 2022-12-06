@@ -1,7 +1,15 @@
 #include "ProcessSX3.h"
 
 std::vector<SuperX3Detector> ProcessSX3(std::vector<SuperX3Back> back_, std::vector<SuperX3Front> front_, bool up) {
-    std::vector<SuperX3Detector> outputSX3_;
+    
+	Calibrations* calibrations = Calibrations::Instance();
+    auto SX3dGains = calibrations->GetQQQ5DownCalibrations();
+    auto SX3uGains = calibrations->GetQQQ5UpCalibrations();
+
+    std::map<int, std::map<int, std::pair<float, float> > > SX3Gains;
+    SX3Gains = up ? SX3uGains : SX3dGains;
+	
+	std::vector<SuperX3Detector> outputSX3_;
 
     RemoveSX3BackDuplicates(back_);
     RemoveSX3FrontDuplicates(front_);

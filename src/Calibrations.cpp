@@ -18,6 +18,8 @@ Calibrations::Calibrations() {
 
     ReadSuperX3UpCalibrations();
     ReadSuperX3UpPedestals();
+	ReadSuperX3DownCalibrations();
+    ReadSuperX3DownPedestals();
 
 	ReadBB10Calibrations();
 	ReadBB10Pedestals();
@@ -136,6 +138,36 @@ void Calibrations::ReadSuperX3UpPedestals() {
 
     while(in >> det >> something >> pedestal) {
         fSuperX3UpPedestals[det][something] = pedestal;
+    }
+
+    in.close();
+}
+
+void Calibrations::ReadSuperX3DownCalibrations() {
+    std::cout << PrintOutput("\t\tReading SuperX3DownCalibrations.dat", "blue") << std::endl;
+    std::ifstream in("SuperX3DownCalibrations.dat");
+    ASSERT_WITH_MESSAGE(in.is_open(), "Could not open SuperX3DownCalibrations.dat");
+
+    int det, strip, back;
+    double intercept, slope;
+
+    while(in >> det >> strip >> back >> intercept >> slope) {
+        fSuperX3DownCalibrations[det][strip][back] = std::make_pair(intercept, slope);
+    }
+
+    in.close();
+}
+
+void Calibrations::ReadSuperX3DownPedestals() {
+    std::cout << PrintOutput("\t\tReading SuperX3DownPedestals.dat", "blue") << std::endl;
+    std::ifstream in("SuperX3DownPedestals.dat");
+    ASSERT_WITH_MESSAGE(in.is_open(), "Could not open SuperX3DownPedestals.dat");
+
+    int det, something;
+    double pedestal;
+
+    while(in >> det >> something >> pedestal) {
+        fSuperX3DownPedestals[det][something] = pedestal;
     }
 
     in.close();

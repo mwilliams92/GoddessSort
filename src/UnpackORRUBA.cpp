@@ -165,7 +165,7 @@ UnpackORRUBA::UnpackORRUBA(fileListStruct run) {
                             QQQ5Sector hit = {channel, detector, channel - 129 - detector*4, adc};
                             QuSector_.push_back(hit);
                         } else if(channel > 144 && channel <= 160 && adc > SX3Threshold) { // SuperX3 Upstream Detectors 0-3 (back sides)
-                            int detector = static_cast<int>((channel - 145)/4);
+                            int detector = static_cast<int>((channel - 145)/4); // 0->3
                             SuperX3Back hit = {channel, detector, channel - 145 - detector*4, adc};
                             SX3uBack_.push_back(hit);
                         } else if(channel > 160 && channel <= 176 && adc > SX3Threshold) { // SuperX3 Upstream Detectors 6-9 (back sides)
@@ -193,8 +193,8 @@ UnpackORRUBA::UnpackORRUBA(fileListStruct run) {
                             SuperX3Front hit = {channel, detector, strip, leftSide, adc};
                             SX3dFront_.push_back(hit);
                         } else if(channel > 384 && channel <= 400 && adc > SX3Threshold) { // SuperX3 Downstream Detectors 0-3 (back sides)
-                            int detector = static_cast<int>((channel - 385)/4);
-                            SuperX3Back hit = {channel, detector, channel - 385 - detector*4, adc};
+                            int detector = static_cast<int>((channel - 385)/4); // 0->3
+                            SuperX3Back hit = {channel, detector, channel - 385 - detector*4, adc}; // Something is wrong here
                             SX3dBack_.push_back(hit);
                         } else if(channel > 400 && channel <= 416 && adc > SX3Threshold) { // SuperX3 Downstream Detectors 6-9 (back sides)
                             int detector = static_cast<int>((channel - 401)/4) + 6;
@@ -208,11 +208,7 @@ UnpackORRUBA::UnpackORRUBA(fileListStruct run) {
                             int detector = static_cast<int>((channel - 425)/4) + 10;
                             SuperX3Back hit = {channel, detector, channel - 425 - (detector - 10)*4, adc};
                             SX3dBack_.push_back(hit);
-						// Downstream BB10s
-                        //} else if(channel > 432 && channel <= 496 && adc > BB10Threshold) {
-                        //    int detector = static_cast<int>((channel - 433)/8);
-                        //    BB10Hit hit = {channel, detector, channel - 433 - detector*8, adc};
-                        //    BB10Hit_.push_back(hit); 
+						// BB10s:
 						}  else if(channel > 432 && channel <= 464 && adc > BB10Threshold) {
                             int detector = static_cast<int>((channel - 433)/8); // 0 -> 3
                             BB10Hit hit = {channel, detector+1, channel - 433 - detector*8, adc}; // det = 1->4 (det 0 not present)
