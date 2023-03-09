@@ -210,8 +210,8 @@ UnpackORRUBA::UnpackORRUBA(fileListStruct run) {
                             bool leftSide = channel % 2 == 0;
                             SuperX3Front hit = {channel, detector, strip, leftSide, adc};
                             SX3dFront_.push_back(hit);
-                        } 
 
+                        } 
 						else if(channel > 384 && channel <= 400 && adc > SX3Threshold) { // SuperX3 Downstream Detectors 0-3 (back sides)
                             int detector = static_cast<int>((channel - 385)/4); // 0->3
                             SuperX3Back hit = {channel, detector, channel - 385 - detector*4, adc}; // Something is wrong here
@@ -223,7 +223,7 @@ UnpackORRUBA::UnpackORRUBA(fileListStruct run) {
                         } else if(channel > 416 && channel <= 424 && adc > SX3Threshold) { // SuperX3 Downstream Detectors 4-5 (back sides)
                             int detector = static_cast<int>((channel - 417)/4) + 4;
                             //SuperX3Back hit = {channel, detector, channel - 417 - (detector - 4)*4, adc};
-							SuperX3Back hit = {channel, detector, abs(channel - 420 - (detector - 4)*4), adc}; // Flip Sectors
+							              SuperX3Back hit = {channel, detector, abs(channel - 420 - (detector - 4)*4), adc}; // Flip Sectors
                             SX3dBack_.push_back(hit);
                         } else if(channel > 424 && channel <= 432 && adc > SX3Threshold) { // SuperX3 Downstream Detectors 10-11 (back sides) (11 is not present)
                             int detector = static_cast<int>((channel - 425)/4) + 10;
