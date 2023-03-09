@@ -103,7 +103,11 @@ typedef struct SuperX3Detector {
     int stripLeftADC;
     int stripRightChannel;
     int stripRightADC;
-    float stripEnergy;
+    float stripLeftEnergy;
+	float stripRightEnergy;
+	float stripEnergy;
+	float stripPosition;
+	float stripPositionCal;
 } SuperX3Detector;
 
 typedef struct ICTracking{

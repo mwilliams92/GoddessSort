@@ -3,11 +3,21 @@
 std::vector<SuperX3Detector> ProcessSX3(std::vector<SuperX3Back> back_, std::vector<SuperX3Front> front_, bool up) {
     
 	Calibrations* calibrations = Calibrations::Instance();
-    auto SX3dGains = calibrations->GetQQQ5DownCalibrations();
-    auto SX3uGains = calibrations->GetQQQ5UpCalibrations();
+    auto SX3dGains = calibrations->GetSuperX3DownCalibrations();
+    auto SX3uGains = calibrations->GetSuperX3UpCalibrations();
+	auto SX3dPeds = calibrations->GetSuperX3DownPedestals();
+    auto SX3uPeds = calibrations->GetSuperX3UpPedestals();
+	auto SX3dPositions = calibrations->GetSuperX3DownPositions();
+    auto SX3uPositions = calibrations->GetSuperX3UpPositions();
 
-    std::map<int, std::map<int, std::pair<float, float> > > SX3Gains;
+    std::map<int, std::map<int, float > > SX3Gains;
     SX3Gains = up ? SX3uGains : SX3dGains;
+
+	std::map<int, std::map<int, float> > SX3Peds;
+    SX3Peds = up ? SX3uPeds : SX3dPeds;
+
+	std::map<int, std::map<int, std::pair<float, float> > > SX3Positions;
+    SX3Positions = up ? SX3uPositions : SX3dPositions;
 	
 	std::vector<SuperX3Detector> outputSX3_;
 
@@ -39,10 +49,18 @@ std::vector<SuperX3Detector> ProcessSX3(std::vector<SuperX3Back> back_, std::vec
     for(auto back: back_) {
         for(auto front: frontMatched_) {
             if(back.detector == front.detector) {
-                float backEnergy = 0.;
-                float frontEnergy = 0.;
+                float backEnergy = (back.adc - SX3Peds[front.detector][back.sector+8])*SX3Gains[front.detector][back.sector+8];
+                float frontLeftEnergy = front.stripLeftADC - SX3Peds[front.detector][front.strip*2];
+				float frontRightEnergy = (front.stripRightADC - SX3Peds[front.detector][front.strip*2+1])*SX3Gains[front.detector][front.strip];
+				float frontEnergy = frontLeftEnergy + frontRightEnergy;
+				float frontPosition = (frontRightEnergy - frontLeftEnergy)/frontEnergy;
+				if (up) { frontPosition = (frontLeftEnergy - frontRightEnergy)/frontEnergy; }
+				float frontPosition_Cal = (frontPosition + SX3Positions[front.detector][front.strip].first)*SX3Positions[front.detector][front.strip].second;
+
                 SuperX3Detector hit = {up, front.detector, back.sector, back.channel, back.adc, backEnergy, front.strip,
-                                       front.stripLeftChannel, front.stripLeftADC, front.stripRightChannel, front.stripRightADC, frontEnergy};
+                                       front.stripLeftChannel, front.stripLeftADC, front.stripRightChannel, front.stripRightADC, frontLeftEnergy, frontRightEnergy, frontEnergy,
+										frontPosition, frontPosition_Cal};
+
                 outputSX3_.push_back(hit);
             }
         }

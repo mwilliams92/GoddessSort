@@ -20,6 +20,8 @@ Calibrations::Calibrations() {
     ReadSuperX3UpPedestals();
 	ReadSuperX3DownCalibrations();
     ReadSuperX3DownPedestals();
+	ReadSuperX3UpPositions();
+	ReadSuperX3DownPositions();
 
 	ReadBB10Calibrations();
 	ReadBB10Pedestals();
@@ -118,11 +120,11 @@ void Calibrations::ReadSuperX3UpCalibrations() {
     std::ifstream in("SuperX3UpCalibrations.dat");
     ASSERT_WITH_MESSAGE(in.is_open(), "Could not open SuperX3UpCalibrations.dat");
 
-    int det, strip, back;
-    double intercept, slope;
+    int det, strip;
+    double gain;
 
-    while(in >> det >> strip >> back >> intercept >> slope) {
-        fSuperX3UpCalibrations[det][strip][back] = std::make_pair(intercept, slope);
+    while(in >> det >> strip >> gain) {
+        fSuperX3UpCalibrations[det][strip] = gain;
     }
 
     in.close();
@@ -148,11 +150,11 @@ void Calibrations::ReadSuperX3DownCalibrations() {
     std::ifstream in("SuperX3DownCalibrations.dat");
     ASSERT_WITH_MESSAGE(in.is_open(), "Could not open SuperX3DownCalibrations.dat");
 
-    int det, strip, back;
-    double intercept, slope;
+    int det, strip;
+    double gain;
 
-    while(in >> det >> strip >> back >> intercept >> slope) {
-        fSuperX3DownCalibrations[det][strip][back] = std::make_pair(intercept, slope);
+    while(in >> det >> strip >> gain) {
+        fSuperX3DownCalibrations[det][strip] = gain;
     }
 
     in.close();
@@ -168,6 +170,36 @@ void Calibrations::ReadSuperX3DownPedestals() {
 
     while(in >> det >> something >> pedestal) {
         fSuperX3DownPedestals[det][something] = pedestal;
+    }
+
+    in.close();
+}
+
+void Calibrations::ReadSuperX3UpPositions() {
+    std::cout << PrintOutput("\t\tReading SuperX3UpPositions.dat", "blue") << std::endl;
+    std::ifstream in("SuperX3UpPositions.dat");
+    ASSERT_WITH_MESSAGE(in.is_open(), "Could not open SuperX3UpPositions.dat");
+
+    int detector, strip;
+    double offset, calib;
+
+    while(in >> detector >> strip >> offset >> calib) {
+        fSuperX3UpPositions[detector][strip] = std::make_pair(offset, calib);
+    }
+
+    in.close();
+}
+
+void Calibrations::ReadSuperX3DownPositions() {
+    std::cout << PrintOutput("\t\tReading SuperX3DownPositions.dat", "blue") << std::endl;
+    std::ifstream in("SuperX3DownPositions.dat");
+    ASSERT_WITH_MESSAGE(in.is_open(), "Could not open SuperX3DownPositions.dat");
+
+    int detector, strip;
+    double offset, calib;
+
+    while(in >> detector >> strip >> offset >> calib) {
+        fSuperX3DownPositions[detector][strip] = std::make_pair(offset, calib);
     }
 
     in.close();

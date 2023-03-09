@@ -69,7 +69,11 @@ UnpackORRUBA::UnpackORRUBA(fileListStruct run) {
     tree->Branch("SX3StripRightChannel", &fSX3StripRightChannel, "SX3StripRightChannel[SX3Mul]/I");
     tree->Branch("SX3StripLeftADC",      &fSX3StripLeftADC,      "SX3StripLeftADC[SX3Mul]/I");
     tree->Branch("SX3StripRightADC",     &fSX3StripRightADC,     "SX3StripRightADC[SX3Mul]/I");
-    tree->Branch("SX3StripEnergy",       &fSX3StripEnergy,       "SX3StripEnergy[SX3Mul]/F");
+    tree->Branch("SX3StripLeftEnergy",   &fSX3StripLeftEnergy,   "SX3StripLeftEnergy[SX3Mul]/F");
+	tree->Branch("SX3StripRightEnergy",  &fSX3StripRightEnergy,  "SX3StripRightEnergy[SX3Mul]/F");
+	tree->Branch("SX3StripEnergy",   	 &fSX3StripEnergy,       "SX3StripEnergy[SX3Mul]/F");
+	tree->Branch("SX3StripPosition",     &fSX3StripPosition,     "SX3StripPosition[SX3Mul]/F");
+	tree->Branch("SX3StripPositionCal",  &fSX3StripPositionCal,  "SX3StripPositionCal[SX3Mul]/F");
 
     // Ionization Chamber
     tree->Branch("icdE",                &fICdE,                "icdE/I");
@@ -82,10 +86,14 @@ UnpackORRUBA::UnpackORRUBA(fileListStruct run) {
     tree->Branch("icPositionWeightedY", &fICPositionWeightedY, "icPositionWeightedY/F");
 
     // TDCs
-    tree->Branch("tdcIC",      &fTDCIC,      "tdcIC/I");
-    tree->Branch("tdcGRETINA", &fTDCGRETINA, "tdcGRETINA/I");
-    tree->Branch("tdcRF",      &fTDCRF,      "tdcRF/I");
-    tree->Branch("tdcSilicon", &fTDCSilicon, "tdcSilicon/I");
+    tree->Branch("tdcIC",      			&fTDCIC,      			"tdcIC/I");
+    tree->Branch("tdcGRETINA", 			&fTDCGRETINA, 			"tdcGRETINA/I");
+    tree->Branch("tdcRF",      			&fTDCRF,      			"tdcRF/I");
+    tree->Branch("tdcSilicon", 			&fTDCSilicon, 			"tdcSilicon/I");
+	tree->Branch("tdcSilicon_Div",		&fTDCSilicon_Div,   	"tdcSilicon_Div/I");
+	tree->Branch("tdcSilicon_GRETINA",	&fTDCSilicon_GRETINA,   "tdcSilicon_GRETINA/I");
+	tree->Branch("tdcSilicon_Delay",	&fTDCSilicon_Delay,   	"tdcSilicon_Delay/I");
+	tree->Branch("tdcSilicon_Upstream",	&fTDCSilicon_Upstream,	"tdcSilicon_Upstream/I");
 
     // Timestamp
     tree->Branch("timeStamp", &fTimeStamp);
@@ -149,6 +157,10 @@ UnpackORRUBA::UnpackORRUBA(fileListStruct run) {
                     int tdcGRETINA = 0;
                     int tdcRF = 0;
                     int tdcSilicon = 0;
+					int tdcSilicon_Div = 0;
+					int tdcSilicon_GRETINA = 0;
+					int tdcSilicon_Delay = 0;
+					int tdcSilicon_Upstream = 0;
 
                     unsigned long long timeStamp = 0;
 
@@ -174,25 +186,33 @@ UnpackORRUBA::UnpackORRUBA(fileListStruct run) {
                             SX3uBack_.push_back(hit);
                         } else if(channel > 176 && channel <= 184 && adc > SX3Threshold) { // SuperX3 Upstream Detectors 4-5 (back sides)
                             int detector = static_cast<int>((channel - 177)/4) + 4;
-                            SuperX3Back hit = {channel, detector, channel - 177 - (detector - 4)*4, adc};
+                            //SuperX3Back hit = {channel, detector, channel - 177 - (detector - 4)*4, adc};
+							SuperX3Back hit = {channel, detector, abs(channel - 180 - (detector - 4)*4), adc}; // Flip Sector Ordering 
                             SX3uBack_.push_back(hit);
-                        } else if(channel > 184 && channel <= 192 && adc > SX3Threshold) { // SuperX3 Upstream Detectors 10-11 (back sides)
+                        } else if(channel > 184 && channel <= 192 && adc > SX3Threshold) { // SuperX3 Upstream Detectors 10-11 (back sides) Flip Sectors
                             int detector = static_cast<int>((channel - 185)/4) + 10;
-                            SuperX3Back hit = {channel, detector, channel - 185 - (detector - 10)*4, adc};
+                            //SuperX3Back hit = {channel, detector, channel - 185 - (detector - 10)*4, adc};
+							SuperX3Back hit = {channel, detector, abs(channel - 188 - (detector - 10)*4), adc}; // Flip Sector Ordering
                             SX3uBack_.push_back(hit);
-                        } else if(channel > 192 && channel <= 288 && adc > SX3Threshold) { // SuperX3 Upstream (front sides)
+                        } 
+
+						else if( (channel > 192 && channel <= 288) && adc > SX3Threshold) { // SuperX3 Upstream (front sides)
                             int detector = static_cast<int>((channel - 193)/8);
                             int strip = static_cast<int>((channel - 193 - detector*8)/2);
                             bool leftSide = channel % 2 == 0;
                             SuperX3Front hit = {channel, detector, strip, leftSide, adc};
                             SX3uFront_.push_back(hit);
-                        } else if(channel > 288 && channel <= 384 && adc > SX3Threshold) { // SuperX3 Downstream (front sides)
+                        }
+
+						else if(channel > 288 && channel <= 384 && adc > SX3Threshold) { // SuperX3 Downstream (front sides)
                             int detector = static_cast<int>((channel - 289)/8);
                             int strip = static_cast<int>((channel - 289 - detector*8)/2);
                             bool leftSide = channel % 2 == 0;
                             SuperX3Front hit = {channel, detector, strip, leftSide, adc};
                             SX3dFront_.push_back(hit);
-                        } else if(channel > 384 && channel <= 400 && adc > SX3Threshold) { // SuperX3 Downstream Detectors 0-3 (back sides)
+                        } 
+
+						else if(channel > 384 && channel <= 400 && adc > SX3Threshold) { // SuperX3 Downstream Detectors 0-3 (back sides)
                             int detector = static_cast<int>((channel - 385)/4); // 0->3
                             SuperX3Back hit = {channel, detector, channel - 385 - detector*4, adc}; // Something is wrong here
                             SX3dBack_.push_back(hit);
@@ -202,11 +222,13 @@ UnpackORRUBA::UnpackORRUBA(fileListStruct run) {
                             SX3dBack_.push_back(hit);
                         } else if(channel > 416 && channel <= 424 && adc > SX3Threshold) { // SuperX3 Downstream Detectors 4-5 (back sides)
                             int detector = static_cast<int>((channel - 417)/4) + 4;
-                            SuperX3Back hit = {channel, detector, channel - 417 - (detector - 4)*4, adc};
+                            //SuperX3Back hit = {channel, detector, channel - 417 - (detector - 4)*4, adc};
+							SuperX3Back hit = {channel, detector, abs(channel - 420 - (detector - 4)*4), adc}; // Flip Sectors
                             SX3dBack_.push_back(hit);
                         } else if(channel > 424 && channel <= 432 && adc > SX3Threshold) { // SuperX3 Downstream Detectors 10-11 (back sides) (11 is not present)
                             int detector = static_cast<int>((channel - 425)/4) + 10;
-                            SuperX3Back hit = {channel, detector, channel - 425 - (detector - 10)*4, adc};
+                            //SuperX3Back hit = {channel, detector, channel - 425 - (detector - 10)*4, adc};
+							SuperX3Back hit = {channel, detector, abs(channel - 428 - (detector - 10)*4), adc}; // Flip Sectors
                             SX3dBack_.push_back(hit);
 						// BB10s:
 						}  else if(channel > 432 && channel <= 464 && adc > BB10Threshold) {
@@ -215,7 +237,7 @@ UnpackORRUBA::UnpackORRUBA(fileListStruct run) {
                             BB10Hit_.push_back(hit);
 						}  else if(channel > 464 && channel <= 496 && adc > BB10Threshold) {
                             int detector = static_cast<int>((channel - 465)/8); // 0 -> 3
-                            BB10Hit hit = {channel, detector+7, channel - 433 - detector*8, adc}; // det = 7->10 (dets 5, 6 & 11 not present)
+                            BB10Hit hit = {channel, detector+7, channel - 465 - detector*8, adc}; // det = 7->10 (dets 5, 6 & 11 not present)
                             BB10Hit_.push_back(hit); 
                  		// Downstream dE Layer QQQ5 Rings  
                         }  else if(channel > 496 && channel <= 560 && adc > QQQThreshold) {
@@ -225,7 +247,7 @@ UnpackORRUBA::UnpackORRUBA(fileListStruct run) {
 						// Downstream dE Layer QQQ5 Detector A Sectors
                         } else if(channel > 560 && channel <= 564 && adc > QQQThreshold) { // QQQ5 deltaE downstream back (sectors)
 							int detector = static_cast<int>((channel - 561)/4); // always 0 (A)
-							QQQ5Sector hit = {channel, detector, channel - 561, adc}; // I think 569 to 576 "should" be empty...
+							QQQ5Sector hit = {channel, detector, channel - 561, adc}; 
                             QdSector_.push_back(hit);
 						// Downstream dE Layer QQQ5 Detector B Sectors
 						} else if(channel > 568 && channel <= 572 && adc > QQQThreshold) { 
@@ -257,7 +279,7 @@ UnpackORRUBA::UnpackORRUBA(fileListStruct run) {
                             int detector = static_cast<int>((channel - 677)/4); // Always 4 (E2-A)
                             QQQ5Sector hit = {channel, detector+4, channel - 677, adc};
                             QdSector_.push_back(hit);
-							QQQ5Ring hit2 = {channel, detector+4, channel - 677, adc};
+							QQQ5Ring hit2 = {channel, detector+4, channel - 677, 0}; // Fill with zero
                             QdRing_.push_back(hit2);	// copy hit into a ring
 						// Downstream E2 Layer QQQ5 Detector B Sectors
                         } else if(channel > 684 && channel <= 688 && adc > QQQThreshold) { // QQQ5 E1&E2 downstream back (sectors)
@@ -283,13 +305,22 @@ UnpackORRUBA::UnpackORRUBA(fileListStruct run) {
                         //    tdcIC = adc;
                         //}
                          
-                        else if(channel == 839) { // TDC GRETINA (was 819)
-                            tdcGRETINA = adc;
-                        } else if(channel == 836) { // TDC RF (was 821)
-                            tdcRF = adc;
-                        } else if(channel == 835) { // TDC Silicon (was 822)
+						else if(channel == 833) { // Silicon Stop
                             tdcSilicon = adc;
+						} else if(channel == 834) { // Divided Silicon Stop?
+                            tdcSilicon_Div = adc; 
+                        } else if(channel == 835) { // Silcon - Gretina Coinc Stop
+                            tdcSilicon_GRETINA = adc;
+                        } else if(channel == 836) { // RF Stop
+                            tdcRF = adc; // RF Stop
+                        } else if(channel == 839) { // GRETINA Stop
+                            tdcGRETINA = adc;
+                        } else if(channel == 840) { // Silcon Stop w/ Alt Delay
+                            tdcSilicon_Delay = adc; 
+                        } else if(channel == 841) { // Silcon Stop w/ Alt Delay
+                            tdcSilicon_Upstream = adc; 
                         }
+						
 
                         if(channel >= 1000 && channel <= 1003) {
                             timeStamp |= (unsigned long long) adc << (16*(channel - 1000));
@@ -395,7 +426,11 @@ UnpackORRUBA::UnpackORRUBA(fileListStruct run) {
                         fSX3StripRightChannel[fSX3Mul] = SX3Detect.stripRightChannel;
                         fSX3StripLeftADC[fSX3Mul] = SX3Detect.stripLeftADC;
                         fSX3StripRightADC[fSX3Mul] = SX3Detect.stripRightADC;
-                        fSX3StripEnergy[fSX3Mul] = SX3Detect.stripEnergy;
+                        fSX3StripLeftEnergy[fSX3Mul] = SX3Detect.stripLeftEnergy;
+						fSX3StripRightEnergy[fSX3Mul] = SX3Detect.stripRightEnergy;
+						fSX3StripEnergy[fSX3Mul] = SX3Detect.stripEnergy;
+						fSX3StripPosition[fSX3Mul] = SX3Detect.stripPosition;
+						fSX3StripPositionCal[fSX3Mul] = SX3Detect.stripPositionCal;
                         fSX3Mul++;
                     }
                     for(auto SX3Detect: SX3uDetect_) {
@@ -410,7 +445,11 @@ UnpackORRUBA::UnpackORRUBA(fileListStruct run) {
                         fSX3StripRightChannel[fSX3Mul] = SX3Detect.stripRightChannel;
                         fSX3StripLeftADC[fSX3Mul] = SX3Detect.stripLeftADC;
                         fSX3StripRightADC[fSX3Mul] = SX3Detect.stripRightADC;
-                        fSX3StripEnergy[fSX3Mul] = SX3Detect.stripEnergy;
+                        fSX3StripLeftEnergy[fSX3Mul] = SX3Detect.stripLeftEnergy;
+						fSX3StripRightEnergy[fSX3Mul] = SX3Detect.stripRightEnergy;
+						fSX3StripEnergy[fSX3Mul] = SX3Detect.stripEnergy;
+						fSX3StripPosition[fSX3Mul] = SX3Detect.stripPosition;
+						fSX3StripPositionCal[fSX3Mul] = SX3Detect.stripPositionCal;
                         fSX3Mul++;
                     }
 
@@ -430,8 +469,12 @@ UnpackORRUBA::UnpackORRUBA(fileListStruct run) {
                     fTDCGRETINA = tdcGRETINA;
                     fTDCRF = tdcRF;
                     fTDCSilicon = tdcSilicon;
-
-                    fTimeStamp = timeStamp;
+					fTDCSilicon_Div = tdcSilicon_Div;
+					fTDCSilicon_GRETINA = tdcSilicon_GRETINA;
+					fTDCSilicon_Delay = tdcSilicon_Delay;
+					fTDCSilicon_Upstream = tdcSilicon_Upstream;
+	
+	                fTimeStamp = timeStamp;
 
                     fRunNumber = run.runNumber;
 
