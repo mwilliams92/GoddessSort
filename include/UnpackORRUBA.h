@@ -83,7 +83,11 @@ private:
     int fSX3StripRightChannel[256];
     int fSX3StripLeftADC[256];
     int fSX3StripRightADC[256];
-    float fSX3StripEnergy[256];
+    float fSX3StripLeftEnergy[256];
+	float fSX3StripRightEnergy[256];
+	float fSX3StripEnergy[256];
+	float fSX3StripPosition[256];
+	float fSX3StripPositionCal[256];
 
     int fICdE;
     int fICE;
@@ -98,6 +102,10 @@ private:
     int fTDCGRETINA;
     int fTDCRF;
     int fTDCSilicon;
+	int fTDCSilicon_Div;
+	int fTDCSilicon_GRETINA;
+	int fTDCSilicon_Delay;
+	int fTDCSilicon_Upstream;
 
     unsigned long long fTimeStamp;
 };

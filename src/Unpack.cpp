@@ -6,6 +6,7 @@ int main(int argc, char *argv[]) {
     return 0;
 }
 
+
 Unpack::Unpack() {
     int StartClock = clock();
     std::cout << PrintOutput("Running GODDESS sort", "yellow") << std::endl;
@@ -96,24 +97,28 @@ void Unpack::CombineReader(fileListStruct run) {
     // The difference of timestamps is to be < 1000 which is a lot considering the timestamps between two ORRUBA events
     // are generally on the order of 100,000.
     std::vector<matchedEvents> matchedEvents_;
-    for(size_t i = 0; i < orrubaTimeStamps_.size(); i++) {
+    //Use this for data runs
+    /*
+    for(size_t i = 0; i < orrubaTimeStamps_.size(); i++) { 
         size_t found_j = 0;
         int found_index = 0;
         Long64_t orrubaTime = orrubaTimeStamps_[i].second;
         Bool_t found = false;
 
         size_t best_j;
-        Long64_t closestTime = 100000;
+        Long64_t closestTime = 100000; 
         Long64_t gretinaTime;
         for(size_t j = 0; j < gretinaTimeStamps_.size(); j++) {
             size_t timeDiff = fabs(orrubaTime - gretinaTimeStamps_[j].second);
-
-            if((timeDiff < 2000) && (timeDiff < closestTime)) {
+            if((timeDiff < 2000) && (timeDiff < closestTime)) { 
                 closestTime = fabs(orrubaTime - gretinaTimeStamps_[j].second);
                 gretinaTime = gretinaTimeStamps_[j].second;
+                if (timeDiff > closestTime) std::cout << orrubaTime << '\t' << gretinaTime << std::endl; //RG Added
+
                 best_j = gretinaTimeStamps_[j].first;
                 found_index = j;
                 found = true;
+
             }
 
             if(timeDiff > 5000 && found) break;
@@ -129,8 +134,35 @@ void Unpack::CombineReader(fileListStruct run) {
         else {
             matchedEvents hit = {i, 0, orrubaTime, 0};
             matchedEvents_.push_back(hit);
-        }
+        } */ //Comment-Uncomment Point
+    
+    //Use this for GRETINA Calibration runs
+    for(size_t i = 0; i < 1; i++) { 
+        size_t found_j = 0;
+        int found_index = 0;
+        Long64_t orrubaTime = orrubaTimeStamps_[i].second;
+        Bool_t found = false;
 
+        size_t best_j;
+        Long64_t gretinaTime;
+        for(size_t j = 0; j < gretinaTimeStamps_.size(); j++) {
+            gretinaTime = gretinaTimeStamps_[j].second;
+            best_j = gretinaTimeStamps_[j].first;
+            found_index = j;
+            found = true;
+
+            // Record ORRUBA + GRETINA timestamps
+            if(found) {
+                matchedEvents hit = {i, best_j, orrubaTime, gretinaTime};
+                matchedEvents_.push_back(hit);
+            }
+            // Record ORRUBA hits that do not have a GRETINA timestamp
+            else {
+                matchedEvents hit = {i, 0, orrubaTime, 0};
+                matchedEvents_.push_back(hit);
+            }
+        }  //Comment-Uncomment Point
+        
         // Remove the first found_index elements and shift everything else down by found_index indices
         // This is so that we don't have to loop through GRETINA events that have already been matched
         // Don't do it for every event as it will slow it down too much. Every 1000 seems to work well
@@ -144,7 +176,11 @@ void Unpack::CombineReader(fileListStruct run) {
 
     // Create Combined TTree
     TFile* f_Combined = new TFile(run.combinedPath.c_str(), "recreate");
-    TTree* tree_Combined = new TTree("data", "Combined ORRUBA and GRETINA data");
+    TTree* tree_Combined = new TTree("data_combined", "Combined ORRUBA and GRETINA data");
+
+    //Test Histogram
+    TH1F *TS_diff = new TH1F("TS_diff","Timestamp difference",200,-100,100);
+
 
     // It appears g2 is the important branch in the GRETINA dataset
     tree_GRETINA->SetBranchAddress("g2", &g2);
@@ -156,10 +192,10 @@ void Unpack::CombineReader(fileListStruct run) {
     int QQQ5Mul, QQQ5Upstream[128], QQQ5Det[128], QQQ5Ring[128], QQQ5RingChannel[128], QQQ5Sector[128], QQQ5SectorChannel[128], QQQ5RingADC[128], QQQ5SectorADC[128];
     float QQQ5RingEnergy[128], QQQ5SectorEnergy[128], QQQ5Angle[128];
     int SX3Mul, SX3Upstream[128], SX3Det[128], SX3Sector[128], SX3SectorChannel[128], SX3SectorADC[128], SX3Strip[128], SX3StripLeftChannel[128], SX3StripRightChannel[128], SX3StripLeftADC[128], SX3StripRightADC[128];
-    float SX3SectorEnergy[128], SX3StripEnergy[128];
+    float SX3SectorEnergy[128], SX3StripEnergy[128], SX3StripRightEnergy[128], SX3StripLeftEnergy[128], SX3StripPosition[128], SX3StripPositionCal[128];
     int ICdE, ICE, ICWireX, ICWireY;
     float ICPositionX, ICPositionY, ICPositionWeightedX, ICPositionWeightedY;
-    int TDCIC, TDCGRETINA, TDCRF, TDCSilicon;
+    int TDCIC, TDCGRETINA, TDCRF, TDCSilicon, TDCSilicon_Div, TDCSilicon_GRETINA, TDCSilicon_Delay, TDCSilicon_Upstream;
     unsigned long long TimeStamp;
 
     tree_ORRUBA->SetBranchAddress("RunNumber", &RunNumber);
@@ -197,6 +233,10 @@ void Unpack::CombineReader(fileListStruct run) {
     tree_ORRUBA->SetBranchAddress("SX3StripLeftADC",      &SX3StripLeftADC);
     tree_ORRUBA->SetBranchAddress("SX3StripRightADC",     &SX3StripRightADC);
     tree_ORRUBA->SetBranchAddress("SX3StripEnergy",       &SX3StripEnergy);
+    tree_ORRUBA->SetBranchAddress("SX3StripRightEnergy",  &SX3StripRightEnergy);
+    tree_ORRUBA->SetBranchAddress("SX3StripLeftEnergy",   &SX3StripLeftEnergy);
+    tree_ORRUBA->SetBranchAddress("SX3StripPosition",     &SX3StripPosition);
+    tree_ORRUBA->SetBranchAddress("SX3StripPositionCal",  &SX3StripPositionCal);
 
     tree_ORRUBA->SetBranchAddress("icdE",                &ICdE);
     tree_ORRUBA->SetBranchAddress("icE",                 &ICE);
@@ -211,6 +251,10 @@ void Unpack::CombineReader(fileListStruct run) {
     tree_ORRUBA->SetBranchAddress("tdcGRETINA", &TDCGRETINA);
     tree_ORRUBA->SetBranchAddress("tdcRF",      &TDCRF);
     tree_ORRUBA->SetBranchAddress("tdcSilicon", &TDCSilicon);
+	tree_ORRUBA->SetBranchAddress("tdcSilicon_Div",		&TDCSilicon_Div);
+	tree_ORRUBA->SetBranchAddress("tdcSilicon_GRETINA",	&TDCSilicon_GRETINA);
+	tree_ORRUBA->SetBranchAddress("tdcSilicon_Delay",	&TDCSilicon_Delay);
+	tree_ORRUBA->SetBranchAddress("tdcSilicon_Upstream",&TDCSilicon_Upstream);
 
     tree_ORRUBA->SetBranchAddress("timeStamp", &TimeStamp);
 
@@ -221,10 +265,10 @@ void Unpack::CombineReader(fileListStruct run) {
     int fQQQ5Mul, fQQQ5Upstream[128], fQQQ5Det[128], fQQQ5Ring[128], fQQQ5RingChannel[128], fQQQ5Sector[128], fQQQ5SectorChannel[128], fQQQ5RingADC[128], fQQQ5SectorADC[128];
     float fQQQ5RingEnergy[128], fQQQ5SectorEnergy[128], fQQQ5Angle[128];
     int fSX3Mul, fSX3Upstream[128], fSX3Det[128], fSX3Sector[128], fSX3SectorChannel[128], fSX3SectorADC[128], fSX3Strip[128], fSX3StripLeftChannel[128], fSX3StripRightChannel[128], fSX3StripLeftADC[128], fSX3StripRightADC[128];
-    float fSX3SectorEnergy[128], fSX3StripEnergy[128];
+    float fSX3SectorEnergy[128], fSX3StripEnergy[128], fSX3StripRightEnergy[128], fSX3StripLeftEnergy[128], fSX3StripPosition[128], fSX3StripPositionCal[128];
     int fICdE, fICE, fICWireX, fICWireY;
     float fICPositionX, fICPositionY, fICPositionWeightedX, fICPositionWeightedY;
-    int fTDCIC, fTDCGRETINA, fTDCRF, fTDCSilicon;
+    int fTDCIC, fTDCGRETINA, fTDCRF, fTDCSilicon, fTDCSilicon_Div, fTDCSilicon_GRETINA, fTDCSilicon_Delay, fTDCSilicon_Upstream;
     unsigned long long fTimeStamp, fGRETINATimeStamp;
 
     tree_Combined->Branch("RunNumber", &fRunNumber);
@@ -261,7 +305,11 @@ void Unpack::CombineReader(fileListStruct run) {
     tree_Combined->Branch("SX3StripRightChannel", &fSX3StripRightChannel, "SX3StripRightChannel[SX3Mul]/I");
     tree_Combined->Branch("SX3StripLeftADC",      &fSX3StripLeftADC,      "SX3StripLeftADC[SX3Mul]/I");
     tree_Combined->Branch("SX3StripRightADC",     &fSX3StripRightADC,     "SX3StripRightADC[SX3Mul]/I");
-    tree_Combined->Branch("SX3StripEnergy",       &fSX3StripEnergy,       "SX3StripEnergy[SX3Mul]/F");
+    tree_Combined->Branch("SX3StripLeftEnergy",   &fSX3StripLeftEnergy,   "SX3StripLeftEnergy[SX3Mul]/F");
+	tree_Combined->Branch("SX3StripRightEnergy",  &fSX3StripRightEnergy,  "SX3StripRightEnergy[SX3Mul]/F");
+	tree_Combined->Branch("SX3StripEnergy",   	  &fSX3StripEnergy,       "SX3StripEnergy[SX3Mul]/F");
+	tree_Combined->Branch("SX3StripPosition",     &fSX3StripPosition,     "SX3StripPosition[SX3Mul]/F");
+	tree_Combined->Branch("SX3StripPositionCal",  &fSX3StripPositionCal,  "SX3StripPositionCal[SX3Mul]/F");
 
     tree_Combined->Branch("icdE",                &fICdE,                "icdE/I");
     tree_Combined->Branch("icE",                 &fICE,                 "icE/I");
@@ -272,10 +320,14 @@ void Unpack::CombineReader(fileListStruct run) {
     tree_Combined->Branch("icPositionWeightedX", &fICPositionWeightedX, "icPositionWeightedX/F");
     tree_Combined->Branch("icPositionWeightedY", &fICPositionWeightedY, "icPositionWeightedY/F");
 
-    tree_Combined->Branch("tdcIC",      &fTDCIC,      "tdcIC/I");
-    tree_Combined->Branch("tdcGRETINA", &fTDCGRETINA, "tdcGRETINA/I");
-    tree_Combined->Branch("tdcRF",      &fTDCRF,      "tdcRF/I");
-    tree_Combined->Branch("tdcSilicon", &fTDCSilicon, "tdcSilicon/I");
+    tree_Combined->Branch("tdcIC",              &fTDCIC,                "tdcIC/I");
+    tree_Combined->Branch("tdcGRETINA",         &fTDCGRETINA,           "tdcGRETINA/I");
+    tree_Combined->Branch("tdcRF",              &fTDCRF,                "tdcRF/I");
+    tree_Combined->Branch("tdcSilicon",         &fTDCSilicon,           "tdcSilicon/I");
+    tree_Combined->Branch("tdcSilicon_Div",		&fTDCSilicon_Div,   	"tdcSilicon_Div/I");
+	tree_Combined->Branch("tdcSilicon_GRETINA",	&fTDCSilicon_GRETINA,   "tdcSilicon_GRETINA/I");
+	tree_Combined->Branch("tdcSilicon_Delay",	&fTDCSilicon_Delay,   	"tdcSilicon_Delay/I");
+	tree_Combined->Branch("tdcSilicon_Upstream",&fTDCSilicon_Upstream,  "tdcSilicon_Upstream/I");
 
     tree_Combined->Branch("timeStamp", &fTimeStamp);
     tree_Combined->Branch("GRETINATimeStamp", &fGRETINATimeStamp);
@@ -356,13 +408,18 @@ void Unpack::CombineReader(fileListStruct run) {
             fSX3StripRightChannel[i] = SX3StripRightChannel[i];
             fSX3StripLeftADC[i] = SX3StripLeftADC[i];
             fSX3StripRightADC[i] = SX3StripRightADC[i];
-            fSX3StripEnergy[i] = SX3StripEnergy[i];
+            fSX3StripLeftEnergy[i] = SX3StripLeftEnergy[i];
+            fSX3StripRightEnergy[i] = SX3StripRightEnergy[i];
+		    fSX3StripEnergy[i] = SX3StripEnergy[i];
+			fSX3StripPosition[i] = SX3StripPosition[i];
+			fSX3StripPositionCal[i] = SX3StripPositionCal[i];      
         }
 
         fICdE = ICdE; fICE = ICE; fICWireX = ICWireX; fICWireY = ICWireY;
         fICPositionX = ICPositionX; fICPositionY = ICPositionY; fICPositionWeightedX = ICPositionWeightedX; fICPositionWeightedY = ICPositionWeightedY;
 
         fTDCIC = TDCIC; fTDCGRETINA = TDCGRETINA; fTDCRF = TDCRF; fTDCSilicon = TDCSilicon;
+        fTDCSilicon_Div = TDCSilicon_Div; fTDCSilicon_GRETINA = TDCSilicon_GRETINA; fTDCSilicon_Delay = TDCSilicon_Delay; fTDCSilicon_Upstream = TDCSilicon_Upstream;
 
         fTimeStamp = TimeStamp; fGRETINATimeStamp = matchedEvent.gretinaTimeStamp;
 
@@ -384,6 +441,9 @@ void Unpack::CombineReader(fileListStruct run) {
                 xtals_quadNum[xtalsMul] = g2Event.quadNum;
                 xtals_t0[xtalsMul] = g2Event.t0;
                 xtals_timestamp[xtalsMul] = g2Event.timestamp;
+                //std::cout << xtalsMul << '\t' << xtals_crystalNum[xtalsMul] << '\t' << xtals_cc[xtalsMul] << '\t' << xtals_timestamp[xtalsMul] << std::endl;
+                //if(xtalsMul==1) std::cout << xtalsMul << '\t' << xtals_timestamp[xtalsMul] - xtals_timestamp[xtalsMul-1] << std::endl;
+                if(xtalsMul==1) TS_diff->Fill(xtals_timestamp[xtalsMul] - xtals_timestamp[xtalsMul-1]);
                 xtalsMul++;
             }
         }
@@ -394,8 +454,9 @@ void Unpack::CombineReader(fileListStruct run) {
         tree_Combined->Fill();
         count++;
     }
-
+    size_t nentriesMATCHED = matchedEvents_.size(); //tree_Combined->GetEntries();
     tree_Combined->Write();
+    TS_diff->Write(); //Test Histogram
     f_Combined->Close();
 
     f_ORRUBA->Close();
@@ -403,6 +464,9 @@ void Unpack::CombineReader(fileListStruct run) {
 
     delete RunNumber;
 
+    std::cout << PrintOutput("\t\t\tTotal Matched Entries: ", "yellow") << nentriesMATCHED << std::endl;
+
     std::cout << PrintOutput("\t\tFinished combining ORRUBA and GRETINA Trees based on time stamps", "blue") << std::endl;
     std::cout << PrintOutput("\t\tCombined TTree 'data' written to file: ", "blue") << run.combinedPath << std::endl;
 }
+
