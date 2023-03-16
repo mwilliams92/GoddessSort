@@ -3,7 +3,7 @@
 
 #define DEBUG 0
 
-#define EB_DIFF_TIME 4000
+#define EB_DIFF_TIME 100 // original set to 4000
 
 #define MAXQUADS 40
 #define MAXCRYSTALS MAXQUADS*4

@@ -98,7 +98,7 @@ void Unpack::CombineReader(fileListStruct run) {
     // are generally on the order of 100,000.
     std::vector<matchedEvents> matchedEvents_;
     //Use this for data runs
-    /*
+     // comment / un-comment point
     for(size_t i = 0; i < orrubaTimeStamps_.size(); i++) { 
         size_t found_j = 0;
         int found_index = 0;
@@ -110,7 +110,7 @@ void Unpack::CombineReader(fileListStruct run) {
         Long64_t gretinaTime;
         for(size_t j = 0; j < gretinaTimeStamps_.size(); j++) {
             size_t timeDiff = fabs(orrubaTime - gretinaTimeStamps_[j].second);
-            if((timeDiff < 2000) && (timeDiff < closestTime)) { 
+            if((timeDiff < 100) && (timeDiff < closestTime)) { // original set to 2000
                 closestTime = fabs(orrubaTime - gretinaTimeStamps_[j].second);
                 gretinaTime = gretinaTimeStamps_[j].second;
                 if (timeDiff > closestTime) std::cout << orrubaTime << '\t' << gretinaTime << std::endl; //RG Added
@@ -134,8 +134,8 @@ void Unpack::CombineReader(fileListStruct run) {
         else {
             matchedEvents hit = {i, 0, orrubaTime, 0};
             matchedEvents_.push_back(hit);
-        } */ //Comment-Uncomment Point
-    
+        }  //Comment-Uncomment Point
+    /*
     //Use this for GRETINA Calibration runs
     for(size_t i = 0; i < 1; i++) { 
         size_t found_j = 0;
@@ -162,7 +162,7 @@ void Unpack::CombineReader(fileListStruct run) {
                 matchedEvents_.push_back(hit);
             }
         }  //Comment-Uncomment Point
-        
+        */ 
         // Remove the first found_index elements and shift everything else down by found_index indices
         // This is so that we don't have to loop through GRETINA events that have already been matched
         // Don't do it for every event as it will slow it down too much. Every 1000 seems to work well
@@ -179,7 +179,7 @@ void Unpack::CombineReader(fileListStruct run) {
     TTree* tree_Combined = new TTree("data_combined", "Combined ORRUBA and GRETINA data");
 
     //Test Histogram
-    TH1F *TS_diff = new TH1F("TS_diff","Timestamp difference",200,-100,100);
+    TH1F *TS_diff = new TH1F("TS_diff","ORRUBA - GRETINA Time-Stamps",2000,-1000,1000);
 
 
     // It appears g2 is the important branch in the GRETINA dataset
@@ -269,7 +269,7 @@ void Unpack::CombineReader(fileListStruct run) {
     int fICdE, fICE, fICWireX, fICWireY;
     float fICPositionX, fICPositionY, fICPositionWeightedX, fICPositionWeightedY;
     int fTDCIC, fTDCGRETINA, fTDCRF, fTDCSilicon, fTDCSilicon_Div, fTDCSilicon_GRETINA, fTDCSilicon_Delay, fTDCSilicon_Upstream;
-    unsigned long long fTimeStamp, fGRETINATimeStamp;
+    unsigned long long fTimeStamp, fGRETINA_TimeStamp;
 
     tree_Combined->Branch("RunNumber", &fRunNumber);
 
@@ -329,8 +329,8 @@ void Unpack::CombineReader(fileListStruct run) {
 	tree_Combined->Branch("tdcSilicon_Delay",	&fTDCSilicon_Delay,   	"tdcSilicon_Delay/I");
 	tree_Combined->Branch("tdcSilicon_Upstream",&fTDCSilicon_Upstream,  "tdcSilicon_Upstream/I");
 
-    tree_Combined->Branch("timeStamp", &fTimeStamp);
-    tree_Combined->Branch("GRETINATimeStamp", &fGRETINATimeStamp);
+    tree_Combined->Branch("timeStamp", &fTimeStamp, "timeStamp/L");
+    tree_Combined->Branch("GRETINA_TimeStamp", &fGRETINA_TimeStamp, "GRETINA_TimeStamp/L");
 
     // Set GRETINA branches in Combined tree
     bool foundGRETINA;
@@ -339,6 +339,10 @@ void Unpack::CombineReader(fileListStruct run) {
     Float_t xtals_ylab[128];
     Float_t xtals_zlab[128];
     Float_t xtals_cc[128];
+    Float_t xtals_cc1[128];
+    Float_t xtals_cc2[128];
+    Float_t xtals_cc3[128];
+    Float_t xtals_cc4[128];
     Float_t xtals_edop[128];
     Float_t xtals_edopMaxInt[128];
     Float_t xtals_edopSeg[128];
@@ -355,6 +359,10 @@ void Unpack::CombineReader(fileListStruct run) {
     tree_Combined->Branch("xtals_ylab", &xtals_ylab, "xtals_ylab[xtalsMul]/F");
     tree_Combined->Branch("xtals_zlab", &xtals_zlab, "xtals_zlab[xtalsMul]/F");
     tree_Combined->Branch("xtals_cc", &xtals_cc, "xtals_cc[xtalsMul]/F");
+    tree_Combined->Branch("xtals_cc1", &xtals_cc1, "xtals_cc1[xtalsMul]/F");
+    tree_Combined->Branch("xtals_cc2", &xtals_cc2, "xtals_cc2[xtalsMul]/F");
+    tree_Combined->Branch("xtals_cc3", &xtals_cc3, "xtals_cc3[xtalsMul]/F");
+    tree_Combined->Branch("xtals_cc4", &xtals_cc4, "xtals_cc4[xtalsMul]/F");
     tree_Combined->Branch("xtals_edop", &xtals_edop, "xtals_edop[xtalsMul]/F");
     tree_Combined->Branch("xtals_edopMaxInt", &xtals_edopMaxInt, "xtals_edopMaxInt[xtalsMul]/F");
     tree_Combined->Branch("xtals_edopSeg", &xtals_edopSeg, "xtals_edopSeg[xtalsMul]/F");
@@ -421,7 +429,9 @@ void Unpack::CombineReader(fileListStruct run) {
         fTDCIC = TDCIC; fTDCGRETINA = TDCGRETINA; fTDCRF = TDCRF; fTDCSilicon = TDCSilicon;
         fTDCSilicon_Div = TDCSilicon_Div; fTDCSilicon_GRETINA = TDCSilicon_GRETINA; fTDCSilicon_Delay = TDCSilicon_Delay; fTDCSilicon_Upstream = TDCSilicon_Upstream;
 
-        fTimeStamp = TimeStamp; fGRETINATimeStamp = matchedEvent.gretinaTimeStamp;
+        fTimeStamp = TimeStamp; fGRETINA_TimeStamp = matchedEvent.gretinaTimeStamp;
+        
+        Long64_t delta_TS; // need to make new variable for time stamp difference since TimeStamp is an unsigned integer, so won't go negative.
 
         // Handle GRETINA
         xtalsMul = 0;
@@ -433,6 +443,10 @@ void Unpack::CombineReader(fileListStruct run) {
                 xtals_ylab[xtalsMul] = g2Event.maxIntPtXYZLab().Y();
                 xtals_zlab[xtalsMul] = g2Event.maxIntPtXYZLab().Z();
                 xtals_cc[xtalsMul] = g2Event.cc;
+                xtals_cc1[xtalsMul] = g2Event.cc1;
+                xtals_cc2[xtalsMul] = g2Event.cc2;
+                xtals_cc3[xtalsMul] = g2Event.cc3;
+                xtals_cc4[xtalsMul] = g2Event.cc4;
                 xtals_edop[xtalsMul] = g2Event.edop;
                 xtals_edopMaxInt[xtalsMul] = g2Event.edop_maxInt;
                 xtals_edopSeg[xtalsMul] = g2Event.edopSeg;
@@ -443,7 +457,9 @@ void Unpack::CombineReader(fileListStruct run) {
                 xtals_timestamp[xtalsMul] = g2Event.timestamp;
                 //std::cout << xtalsMul << '\t' << xtals_crystalNum[xtalsMul] << '\t' << xtals_cc[xtalsMul] << '\t' << xtals_timestamp[xtalsMul] << std::endl;
                 //if(xtalsMul==1) std::cout << xtalsMul << '\t' << xtals_timestamp[xtalsMul] - xtals_timestamp[xtalsMul-1] << std::endl;
-                if(xtalsMul==1) TS_diff->Fill(xtals_timestamp[xtalsMul] - xtals_timestamp[xtalsMul-1]);
+                //if(xtalsMul==1) TS_diff->Fill(xtals_timestamp[xtalsMul] - xtals_timestamp[xtalsMul-1]);
+                delta_TS = TimeStamp - g2Event.timestamp; // need to make new variable since TimeStamp is an unsigned integer.
+                TS_diff->Fill(delta_TS);
                 xtalsMul++;
             }
         }
@@ -464,7 +480,7 @@ void Unpack::CombineReader(fileListStruct run) {
 
     delete RunNumber;
 
-    std::cout << PrintOutput("\t\t\tTotal Matched Entries: ", "yellow") << nentriesMATCHED << std::endl;
+    std::cout << PrintOutput("\t\t\tTotal Matched Entries: ", "yellow") << count << std::endl;
 
     std::cout << PrintOutput("\t\tFinished combining ORRUBA and GRETINA Trees based on time stamps", "blue") << std::endl;
     std::cout << PrintOutput("\t\tCombined TTree 'data' written to file: ", "blue") << run.combinedPath << std::endl;

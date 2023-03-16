@@ -8,6 +8,8 @@ void Histos::InitializeHist(controlVariables* ctrl) {
 
     Int_t i=0;
 
+    std::cout << "Debug 0" << std::endl;
+
     /* If this is a calibration run, for energy or for cross-talk,
        we use different histograms. */
     if(!ctrl->calibration && !ctrl->xtalkAnalysis) {
@@ -91,6 +93,9 @@ void Histos::InitializeHist(controlVariables* ctrl) {
         test = new TH1F ("test", "test", 3000, 0, 3000);
 
     } else if (ctrl->calibration && !ctrl->xtalkAnalysis) {
+        
+        std::cout << "Debug 1" << std::endl;
+
         for(i = 0; i < MAXCHANNELS; i++) {
             char str[300];
             sprintf(str, "eraw%i", i);
@@ -248,6 +253,9 @@ void Histos::WriteHistos(controlVariables* ctrl) {
 
         test->Write(); test->Delete();
     } else if(ctrl->calibration && !ctrl->xtalkAnalysis) { /* ctrl->calibration */
+
+        std::cout << "Debug 2" << std::endl;
+
         for(i = 0; i < MAXCHANNELS; i++) {
             eraw[i]->Write(); eraw[i]->Delete();
             ecal[i]->Write(); ecal[i]->Delete();
