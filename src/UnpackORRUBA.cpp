@@ -223,7 +223,7 @@ UnpackORRUBA::UnpackORRUBA(fileListStruct run) {
                         } else if(channel > 416 && channel <= 424 && adc > SX3Threshold) { // SuperX3 Downstream Detectors 4-5 (back sides)
                             int detector = static_cast<int>((channel - 417)/4) + 4;
                             //SuperX3Back hit = {channel, detector, channel - 417 - (detector - 4)*4, adc};
-							              SuperX3Back hit = {channel, detector, abs(channel - 420 - (detector - 4)*4), adc}; // Flip Sectors
+							SuperX3Back hit = {channel, detector, abs(channel - 420 - (detector - 4)*4), adc}; // Flip Sectors
                             SX3dBack_.push_back(hit);
                         } else if(channel > 424 && channel <= 432 && adc > SX3Threshold) { // SuperX3 Downstream Detectors 10-11 (back sides) (11 is not present)
                             int detector = static_cast<int>((channel - 425)/4) + 10;

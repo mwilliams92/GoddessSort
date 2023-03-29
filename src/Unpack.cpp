@@ -110,7 +110,7 @@ void Unpack::CombineReader(fileListStruct run) {
         Long64_t gretinaTime;
         for(size_t j = 0; j < gretinaTimeStamps_.size(); j++) {
             size_t timeDiff = fabs(orrubaTime - gretinaTimeStamps_[j].second);
-            if((timeDiff < 100) && (timeDiff < closestTime)) { // original set to 2000
+            if((timeDiff < 2000) && (timeDiff < closestTime)) { // original set to 2000
                 closestTime = fabs(orrubaTime - gretinaTimeStamps_[j].second);
                 gretinaTime = gretinaTimeStamps_[j].second;
                 if (timeDiff > closestTime) std::cout << orrubaTime << '\t' << gretinaTime << std::endl; //RG Added
@@ -161,8 +161,8 @@ void Unpack::CombineReader(fileListStruct run) {
                 matchedEvents hit = {i, 0, orrubaTime, 0};
                 matchedEvents_.push_back(hit);
             }
-        }  //Comment-Uncomment Point
-        */ 
+        } */ //Comment-Uncomment Point
+         
         // Remove the first found_index elements and shift everything else down by found_index indices
         // This is so that we don't have to loop through GRETINA events that have already been matched
         // Don't do it for every event as it will slow it down too much. Every 1000 seems to work well
@@ -179,7 +179,8 @@ void Unpack::CombineReader(fileListStruct run) {
     TTree* tree_Combined = new TTree("data_combined", "Combined ORRUBA and GRETINA data");
 
     //Test Histogram
-    TH1F *TS_diff = new TH1F("TS_diff","ORRUBA - GRETINA Time-Stamps",2000,-1000,1000);
+    TH1F *TS_diff = new TH1F("TS_diff","Time Between GRETINA Events",2000,-1000,1000);
+    TH1F *TS_diff2 = new TH1F("TS_diff2","ORRUBA - GRETINA Time-Stamps",2000,-1000,1000);
 
 
     // It appears g2 is the important branch in the GRETINA dataset
@@ -457,22 +458,24 @@ void Unpack::CombineReader(fileListStruct run) {
                 xtals_timestamp[xtalsMul] = g2Event.timestamp;
                 //std::cout << xtalsMul << '\t' << xtals_crystalNum[xtalsMul] << '\t' << xtals_cc[xtalsMul] << '\t' << xtals_timestamp[xtalsMul] << std::endl;
                 //if(xtalsMul==1) std::cout << xtalsMul << '\t' << xtals_timestamp[xtalsMul] - xtals_timestamp[xtalsMul-1] << std::endl;
-                //if(xtalsMul==1) TS_diff->Fill(xtals_timestamp[xtalsMul] - xtals_timestamp[xtalsMul-1]);
-                delta_TS = TimeStamp - g2Event.timestamp; // need to make new variable since TimeStamp is an unsigned integer.
-                TS_diff->Fill(delta_TS);
+                if(xtalsMul>0) TS_diff->Fill(xtals_timestamp[xtalsMul] - xtals_timestamp[xtalsMul-1]);
+                delta_TS = TimeStamp - xtals_timestamp[xtalsMul]; // need to make new variable since TimeStamp is an unsigned integer.
+                TS_diff2->Fill(delta_TS);
                 xtalsMul++;
+                
             }
+            count++;
         }
         else {
             foundGRETINA = false;
         }
 
         tree_Combined->Fill();
-        count++;
     }
     size_t nentriesMATCHED = matchedEvents_.size(); //tree_Combined->GetEntries();
     tree_Combined->Write();
     TS_diff->Write(); //Test Histogram
+    TS_diff2->Write(); //Test Histogram
     f_Combined->Close();
 
     f_ORRUBA->Close();
